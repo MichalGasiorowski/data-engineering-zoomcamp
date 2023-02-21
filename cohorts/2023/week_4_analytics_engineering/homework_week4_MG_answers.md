@@ -48,7 +48,6 @@ You should find the views and models for querying in your DWH.
 
 
 #### Answer ####  
- 
 
 ```bigquery
 SELECT count(*) FROM `magnetic-energy-375219.production.fact_trips` ;
@@ -100,7 +99,8 @@ Run:
 dbt build --var 'is_test_run: false'
 ```
 in production Environment
-
+The query to get the count for stg_fhv_tripdata view:
+s
 ```bigquery
 SELECT count(*) FROM `magnetic-energy-375219.production.stg_fhv_tripdata` 
 WHERE pickup_datetime >= TIMESTAMP('2019-01-01')
@@ -136,11 +136,11 @@ in production Environment
 ```bigquery
 SELECT count(*) FROM `magnetic-energy-375219.production.fact_fhv_trips` 
 WHERE pickup_datetime >= TIMESTAMP('2019-01-01')
-AND   pickup_datetime <= TIMESTAMP('2020-01-01');
+AND   pickup_datetime < TIMESTAMP('2020-01-01');
 ```
 return 22998722
 
-#### Answer 3
+#### Answer 4
 **B** 22998722
 
 ### Question 5: 
@@ -153,8 +153,20 @@ Create a dashboard with some tiles that you find interesting to explore the data
 - April
 - January
 - December
+- 
+#### Answer ####  
 
+Create data source for fact_fhv_trips table:
+![Looker_studio_fact_fhv_trips_datasource.png](screenshots%2FLooker_studio_fact_fhv_trips_datasource.png)
 
+Created report with trips per month bar chart : 
+
+![fhv_trips_report.png](screenshots%2Ffhv_trips_report.png)
+
+As seen from the report, most of the trips for fhv data were in January.
+
+#### Answer 5
+**C** January
 
 ## Submitting the solutions
 
