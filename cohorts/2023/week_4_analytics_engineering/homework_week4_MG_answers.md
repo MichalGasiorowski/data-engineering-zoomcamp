@@ -27,12 +27,12 @@ Don't forget to set dataset region where it's supposed to be ( by default == US 
 Copy [taxi_zone_lookup.csv](..%2F..%2F..%2Fweek_4_analytics_engineering%2Ftaxi_rides_ny%2Fdata%2Ftaxi_zone_lookup.csv)
     [seeds_properties.yml](..%2F..%2F..%2Fweek_4_analytics_engineering%2Ftaxi_rides_ny%2Fdata%2Fseeds_properties.yml)
 to .seeds folder under dbt-models
-Run dbt seed from dbt-console.
+Run dbt seed from dbt-console. ( don't forget to edit .gitignore if necessary )
 It results in new table being created in BigQuery.
 
 run ```dbt build --var 'is_test_run: false' ```
 
-![dbt build](screenshots%2Fdbt_build_screenshotpng)
+![dbt build](screenshots%2Fdbt_build_screenshot.png)
 
 ### Question 1: 
 
@@ -51,14 +51,14 @@ You should find the views and models for querying in your DWH.
  
 
 ```bigquery
-SELECT count(*) FROM `magnetic-energy-375219.dbt_mgasiorowski.fact_trips` ;
+SELECT count(*) FROM `magnetic-energy-375219.production.fact_trips` ;
 ```
 returns 
-61644197
+61644369
 
 
 #### Answer 1 
-**???** 61644197
+**C** 61648442
 
 ### Question 2: 
 
@@ -71,6 +71,15 @@ You will need to complete "Visualising the data" videos, either using [google da
 - 76.3/23.7
 - 99.1/0.9
 
+#### Answer ####  
+
+Created the report for fact_trips, as in the video:
+
+![Looker_studio_fact_trips_report.png](screenshots%2FLooker_studio_fact_trips_report.png)
+
+As we can see from the pie chart, the distribution is 89.9/10.1
+#### Answer 2
+**A** 89.9/10.1
 
 
 ### Question 3: 
@@ -85,6 +94,22 @@ Filter records with pickup time in year 2019.
 - 53244696
 - 63244696
 
+#### Answer ####  
+Run:
+```shell
+dbt build --var 'is_test_run: false'
+```
+in production Environment
+
+```bigquery
+SELECT count(*) FROM `magnetic-energy-375219.production.stg_fhv_tripdata` 
+WHERE pickup_datetime >= TIMESTAMP('2019-01-01')
+AND   pickup_datetime <= TIMESTAMP('2020-01-01');
+```
+return 43244693
+
+#### Answer 3
+**B** 43244696
 
 ### Question 4: 
 
@@ -98,6 +123,25 @@ Run it via the CLI without limits (is_test_run: false) and filter records with p
 - 22998722
 - 32998722
 - 42998722
+
+
+#### Answer ####  
+Run:
+```shell
+dbt build --var 'is_test_run: false'
+```
+in production Environment
+
+
+```bigquery
+SELECT count(*) FROM `magnetic-energy-375219.production.fact_fhv_trips` 
+WHERE pickup_datetime >= TIMESTAMP('2019-01-01')
+AND   pickup_datetime <= TIMESTAMP('2020-01-01');
+```
+return 22998722
+
+#### Answer 3
+**B** 22998722
 
 ### Question 5: 
 
