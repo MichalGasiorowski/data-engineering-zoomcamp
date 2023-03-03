@@ -134,6 +134,55 @@ What is the average size of the Parquet (ending with .parquet extension) Files t
 - 250MB
 </br></br>
 
+#### Answer ####  
+
+```jupyter
+!wget https://github.com/DataTalksClub/nyc-tlc-data/releases/download/fhvhv/fhvhv_tripdata_2021-06.csv.gz
+!gunzip fhvhv_tripdata_2021-06.csv.gz
+```
+schema is different, based on how header in csv look like:
+```jupyterpython
+!head fhvhv_tripdata_2021-06.csv
+dispatching_base_num,pickup_datetime,dropoff_datetime,PULocationID,DOLocationID,SR_Flag,Affiliated_base_number
+B02764,2021-06-01 00:02:41,2021-06-01 00:07:46,174,18,N,B02764
+B02764,2021-06-01 00:16:16,2021-06-01 00:21:14,32,254,N,B02764
+B02764,2021-06-01 00:27:01,2021-06-01 00:42:11,240,127,N,B02764
+```
+
+```jupyterpython
+schema = types.StructType([
+    #types.StructField('hvfhs_license_num', types.StringType(), True),
+    types.StructField('dispatching_base_num', types.StringType(), True),
+    types.StructField('pickup_datetime', types.TimestampType(), True),
+    types.StructField('dropoff_datetime', types.TimestampType(), True),
+    types.StructField('PULocationID', types.IntegerType(), True),
+    types.StructField('DOLocationID', types.IntegerType(), True),
+    types.StructField('SR_Flag', types.StringType(), True),
+    types.StructField('Affiliated_base_number', types.StringType(), True)
+])
+
+df = spark.read \
+    .option("header", "true") \
+    .schema(schema) \
+    .csv('fhvhv_tripdata_2021-06.csv')
+
+df = df.repartition(12)
+
+df.write.parquet('data/pq/fhvhv/2021/06/')
+```
+
+```jupyterpython
+!ls -al --block-size=M data/pq/fhvhv/2021/06/*.parquet
+
+-rw-r--r-- 1 michal michal 22M Mar  3 10:53 data/pq/fhvhv/2021/06/part-00000-90aef90d-98c3-4ac6-93f9-4073e7e2afc4-c000.snappy.parquet
+-rw-r--r-- 1 michal michal 22M Mar  3 10:53 data/pq/fhvhv/2021/06/part-00001-90aef90d-98c3-4ac6-93f9-4073e7e2afc4-c000.snappy.parquet
+-rw-r--r-- 1 michal michal 22M Mar  3 10:53 data/pq/fhvhv/2021/06/part-00002-90aef90d-98c3-4ac6-93f9-4073e7e2afc4-c000.snappy.parquet
+...
+```
+
+#### Answer 2
+**B** 24MB
+
 
 ### Question 3: 
 
@@ -148,6 +197,37 @@ Consider only trips that started on June 15.</br>
 - 50,982
 </br></br>
 
+#### Answer ####  
+
+use pypark functions or sql : 
+```jupyterpython
+df \
+    .withColumn('pickup_date', F.to_date(df.pickup_datetime)) \
+    .filter("pickup_date = '2021-06-15'") \
+    .count()
+```
+, or : 
+```jupyterpython
+spark.sql("""
+SELECT
+    COUNT(1)
+FROM 
+    fhvhv_2021_06
+WHERE
+    to_date(pickup_datetime) = '2021-06-15';
+""").show()
+```
+in both cases the reuslt is :
+```text
++--------+
+|count(1)|
++--------+
+|  450872|
++--------+
+```
+
+#### Answer 3
+**C** 452,470
 
 ### Question 4: 
 
@@ -162,6 +242,51 @@ How long was the longest trip in Hours?</br>
 - 3.32 Hours
 </br></br>
 
+#### Answer ####  
+
+```jupyterpython
+df \
+    .withColumn('duration_hours', (df.dropoff_datetime.cast('long') - df.pickup_datetime.cast('long')) / 3600) \
+    .withColumn('pickup_date', F.to_date(df.pickup_datetime)) \
+    .groupBy('pickup_date') \
+        .max('duration_hours')  \
+    .orderBy('max(duration_hours)', ascending=False) \
+    .limit(5) \
+    .show()
+
+```
+returns:
+```text
++-----------+-------------------+
+|pickup_date|max(duration_hours)|
++-----------+-------------------+
+| 2021-06-25|   66.8788888888889|
+| 2021-06-22| 25.549722222222222|
+| 2021-06-27| 19.980833333333333|
+| 2021-06-26| 18.197222222222223|
+| 2021-06-23| 16.466944444444444|
++-----------+-------------------+
+```
+or in spark sql:
+```sparksql
+spark.sql("""
+SELECT
+    to_date(pickup_datetime) AS pickup_date,
+    MAX((CAST(dropoff_datetime AS LONG) - CAST(pickup_datetime AS LONG)) / 3600) AS duration_hours
+FROM 
+    fhvhv_2021_06
+GROUP BY
+    1
+ORDER BY
+    2 DESC
+LIMIT 10;
+""").show()
+```
+
+
+#### Answer 4
+**A** 66.87 Hours
+
 ### Question 5: 
 
 **User Interface**
@@ -174,6 +299,10 @@ How long was the longest trip in Hours?</br>
 - 8080
 </br></br>
 
+Spark UI runs by default on port 4040, if thi port is taken, it tries to run on 4041.
+
+#### Answer 5
+**C** 4040
 
 ### Question 6: 
 
@@ -190,8 +319,37 @@ Using the zone lookup data and the fhvhv June 2021 data, what is the name of the
 - Crown Heights North
 </br></br>
 
+#### Answer ####  
 
+```sparksql
+spark.sql("""
+SELECT
+    pul.Zone,
+    COUNT(1) AS PICKUP_COUNT
+FROM
+    fhvhv_2021_06 fhv LEFT JOIN zones pul ON fhv.PULocationID = pul.LocationID
+GROUP BY
+    1
+ORDER BY
+    2 DESC
+LIMIT 5;
+""").show()
+```
 
+returns : 
+```text
++-------------------+------------+
+|               Zone|PICKUP_COUNT|
++-------------------+------------+
+|Crown Heights North|      231279|
+|       East Village|      221244|
+|        JFK Airport|      188867|
+|     Bushwick South|      187929|
+|      East New York|      186780|
++-------------------+------------+
+```
+#### Answer 6
+**D** Crown Heights North
 
 ## Submitting the solutions
 
