@@ -8,6 +8,10 @@ Uploading data to GCS:
 gsutil -m cp -r pq/ gs://dtc_data_lake_de-zoomcamp-nytaxi/pq
 ```
 
+```bash
+gsutil -m cp -r pq/ gs://prefect-de-zoomcamp_magnetic-energy-375219/pq
+```
+
 Download the jar for connecting to GCS to any location (e.g. the `lib` folder):
 
 ```bash
@@ -30,7 +34,8 @@ Creating a stand-alone cluster ([docs](https://spark.apache.org/docs/latest/spar
 Creating a worker:
 
 ```bash
-URL="spark://de-zoomcamp.europe-west1-b.c.de-zoomcamp-nytaxi.internal:7077"
+#URL="spark://de-zoomcamp.europe-west1-b.c.de-zoomcamp-nytaxi.internal:7077"
+URL="spark://pop-os.localdomain:7077"
 ./sbin/start-slave.sh ${URL}
 
 # for newer versions of spark use that:
@@ -94,12 +99,24 @@ gcloud dataproc jobs submit pyspark \
         --output=gs://dtc_data_lake_de-zoomcamp-nytaxi/report-2020
 ```
 
+
+```bash
+gcloud dataproc jobs submit pyspark \
+    --cluster=de-zoomcamp-cluster \
+    --region=europe-west6 \
+    gs://prefect-de-zoomcamp_magnetic-energy-375219/code/06_spark_sql.py \
+    -- \
+        --input_green=gs://prefect-de-zoomcamp_magnetic-energy-375219/data/green/green_tripdata_2021-*.parquet \
+        --input_yellow=gs://prefect-de-zoomcamp_magnetic-energy-375219/data/yellow/yellow_tripdata_2021-*.parquet \
+        --output=gs://prefect-de-zoomcamp_magnetic-energy-375219/report-2021
+```
+
 ### Big Query
 
 Upload the script to GCS:
 
 ```bash
-TODO
+gsutil cp 06_spark_sql_big_query.py  gs://prefect-de-zoomcamp_magnetic-energy-375219/code/06_spark_sql_big_query.py
 ```
 
 Write results to big query ([docs](https://cloud.google.com/dataproc/docs/tutorials/bigquery-connector-spark-example#pyspark)):
@@ -108,11 +125,11 @@ Write results to big query ([docs](https://cloud.google.com/dataproc/docs/tutori
 gcloud dataproc jobs submit pyspark \
     --cluster=de-zoomcamp-cluster \
     --region=europe-west6 \
-    --jars=gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar
-    gs://dtc_data_lake_de-zoomcamp-nytaxi/code/06_spark_sql_big_query.py \
+    --jars=gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar \
+   gs://prefect-de-zoomcamp_magnetic-energy-375219/code/06_spark_sql_big_query.py  \
     -- \
-        --input_green=gs://dtc_data_lake_de-zoomcamp-nytaxi/pq/green/2020/*/ \
-        --input_yellow=gs://dtc_data_lake_de-zoomcamp-nytaxi/pq/yellow/2020/*/ \
-        --output=trips_data_all.reports-2020
+        --input_green=gs://prefect-de-zoomcamp_magnetic-energy-375219/pq/green/2020/*/ \
+        --input_yellow=gs://prefect-de-zoomcamp_magnetic-energy-375219/pq/yellow/2020/*/ \
+        --output=dezoomcamp.reports-2020
 ```
 
