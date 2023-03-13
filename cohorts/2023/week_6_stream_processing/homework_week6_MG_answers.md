@@ -12,6 +12,14 @@ programming language (Python or Java).
 - Retention configuration ensures the messages not get lost over specific period of time.
 - Group-Id ensures the messages are distributed to associated consumers
 
+#### Answer 1
+Kafka Node is responsible to store topics - they can be distributed on multiple of them, depending on replication factor.
+Zookeeper dependency is removed from version 2.8.0
+Retention configuration ensures the messages not get lost over specific period of time - True. Retention defines how long 
+kafka will keep the messages.
+Group-Id determines the group consumer belong to - for con
+
+**A, C, D** 
 
 ### Question 2: 
 
@@ -22,8 +30,11 @@ programming language (Python or Java).
 - Consumer Group Id
 - Ack All
 
+#### Answer 2
 
+Topic Replication factor configures number of broker the topic will be copied. The higher the replication factor, the higher reliabilty.
 
+**A,D** 
 ### Question 3: 
 
 **Please select the Kafka concepts that support scaling**  
@@ -33,6 +44,11 @@ programming language (Python or Java).
 - Consumer Group Id
 - Ack All
 
+#### Answer 3
+-- Topic Paritioning & Consumer Group Id supports scaling 
+- Ack All is in **opposition to scaling**
+
+** B, C ** 
 
 ### Question 4: 
 
@@ -46,6 +62,12 @@ Consider cardinality of the field you have selected and scaling aspects of your 
 - tpep_pickup_datetime
 - tpep_dropoff_datetime
 
+#### Answer 4
+- vendor_id
+- tpep_pickup_datetime
+- tpep_dropoff_datetime
+
+**B, C ** 
 
 ### Question 5: 
 
@@ -57,6 +79,14 @@ Consider cardinality of the field you have selected and scaling aspects of your 
 - Group-Id
 - Offset
 - Cluster Key and Cluster-Secret
+
+#### Answer 5
+Consumer need Deserializer config, topics for which it's Subscribed, group-id and these configurations are not needed for a Producer.
+Cluster Key and Cluster-Secret are needed for Consumer and Producer.
+Bootstrap Server is needed for Consumer and Producer.
+Offset is specified - it's taken from Kafka server, there is auto.offset.reset config for offset reset strategies when offset does not exist on the server.
+
+**A, B, D ** 
 
 
 ### Question 6:
